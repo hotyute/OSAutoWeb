@@ -11,7 +11,7 @@
 define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'osrs_portal');
 define('DB_USER', 'root');          // change in production
-define('DB_PASS', '');              // change in production
+define('DB_PASS', '!Derickandjr1010');              // change in production
 define('DB_CHARSET', 'utf8mb4');
 
 try {
