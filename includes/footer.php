@@ -1,7 +1,6 @@
 <?php
 /**
- * Global Footer
- * Closes <main>, adds footer bar, closes <body>/<html>.
+ * Global Footer — Responsive-safe.
  */
 ?>
 </main>
