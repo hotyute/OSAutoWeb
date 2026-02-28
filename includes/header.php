@@ -314,13 +314,12 @@ initSession();
   <nav>
     <?php if (isLoggedIn()): ?>
       <a href="/dashboard.php">Dashboard</a>
+      <a href="/forum/index.php">Forum</a>
+      <a href="/settings.php">Settings</a>
 
-      <?php /* Moderator+ link */ ?>
       <?php if (hasRole('moderator')): ?>
         <a href="/mod/index.php" class="role-mod">Mod Panel</a>
       <?php endif; ?>
-
-      <?php /* Admin-only link */ ?>
       <?php if (hasRole('admin')): ?>
         <a href="/admin/index.php" class="role-admin">Admin Panel</a>
       <?php endif; ?>

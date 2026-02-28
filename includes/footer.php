@@ -7,7 +7,7 @@
 </main>
 
 <footer class="site-footer">
-  &copy; <?= date('Y') ?> >OSRS_Client &mdash; Not affiliated with Jagex Ltd.
+  &copy; <?= date('Y') ?> >OS_Auto &mdash; Not affiliated with Jagex Ltd.
   &bull; All use at your own risk.
 </footer>
 
