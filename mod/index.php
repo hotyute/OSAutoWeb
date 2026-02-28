@@ -1,8 +1,4 @@
 <?php
-/**
- * Moderator Panel — Responsive Dashboard
- * Tables wrapped for horizontal scroll. Filter bar stacks on mobile.
- */
 $pageTitle = 'Mod Panel';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
@@ -16,9 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } else {
         $targetId = (int)($_POST['target_user_id'] ?? 0);
         if ($_POST['action'] === 'hwid_clear' && $targetId > 0) {
-            $pdo->prepare(
-                'UPDATE `users` SET `hwid` = NULL, `hwid_updated_at` = NOW() WHERE `user_id` = ?'
-            )->execute([$targetId]);
+            $pdo->prepare('UPDATE `users` SET `hwid`=NULL, `hwid_updated_at`=NOW() WHERE `user_id`=?')
+                ->execute([$targetId]);
             logAction($pdo, $targetId, 'hwid_reset_by_mod:' . $_SESSION['user_id']);
             $flash = "✅ HWID cleared for user #$targetId.";
         }
@@ -54,7 +49,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="flex-between flex-between-mobile mb-1">
   <h1>🛡️ Moderator Panel</h1>
-  <a href="/mod/scripts.php" class="btn btn-secondary btn-sm">📜 Manage Scripts</a>
+  <a href="/mod/scripts.php" class="btn btn-secondary btn-sm">📜 Scripts</a>
 </div>
 
 <?php if ($flash): ?>
@@ -63,45 +58,76 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- HWID Management -->
+<!-- ========== HWID MANAGEMENT ========== -->
 <div class="card">
-  <h3>🖥️ Bound HWIDs — Manual Clear</h3>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>User</th><th>HWID</th><th>Last Updated</th><th>Action</th></tr>
-      </thead>
-      <tbody>
-        <?php foreach ($hwidUsers as $hu): ?>
-          <tr>
-            <td><strong><?= e($hu['username']) ?></strong></td>
-            <td style="font-family:var(--font-mono);font-size:.76rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                title="<?= e($hu['hwid']) ?>">
+  <h3>🖥️ Bound HWIDs</h3>
+
+  <!-- Desktop table -->
+  <div class="desktop-only">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>User</th><th>HWID</th><th>Last Updated</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <?php foreach ($hwidUsers as $hu): ?>
+            <tr>
+              <td><strong><?= e($hu['username']) ?></strong></td>
+              <td style="font-family:var(--font-mono);font-size:.76rem;">
+                <?= e($hu['hwid']) ?>
+              </td>
+              <td style="font-size:.82rem;"><?= e($hu['hwid_updated_at'] ?? '—') ?></td>
+              <td>
+                <form method="POST" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
+                  <input type="hidden" name="action" value="hwid_clear">
+                  <input type="hidden" name="target_user_id" value="<?= $hu['user_id'] ?>">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          onclick="return confirm('Clear HWID for <?= e($hu['username']) ?>?');">Clear</button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (!$hwidUsers): ?>
+            <tr><td colspan="4" class="text-center" style="color:var(--text-secondary);">No bound HWIDs.</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="mobile-only">
+    <?php if (!$hwidUsers): ?>
+      <p style="color:var(--text-secondary);text-align:center;padding:1rem 0;">No bound HWIDs.</p>
+    <?php endif; ?>
+    <?php foreach ($hwidUsers as $hu): ?>
+      <div class="hwid-card">
+        <div class="hwid-card-top">
+          <div>
+            <strong><?= e($hu['username']) ?></strong>
+            <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--accent-purple);
+                        margin-top:.2rem;word-break:break-all;">
               <?= e($hu['hwid']) ?>
-            </td>
-            <td style="font-size:.82rem;"><?= e($hu['hwid_updated_at'] ?? '—') ?></td>
-            <td>
-              <form method="POST" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
-                <input type="hidden" name="action" value="hwid_clear">
-                <input type="hidden" name="target_user_id" value="<?= $hu['user_id'] ?>">
-                <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Clear HWID for <?= e($hu['username']) ?>?');">
-                  Clear
-                </button>
-              </form>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        <?php if (!$hwidUsers): ?>
-          <tr><td colspan="4" style="color:var(--text-secondary);text-align:center;">No bound HWIDs.</td></tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
+            </div>
+          </div>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
+            <input type="hidden" name="action" value="hwid_clear">
+            <input type="hidden" name="target_user_id" value="<?= $hu['user_id'] ?>">
+            <button type="submit" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Clear HWID?');">Clear</button>
+          </form>
+        </div>
+        <div style="font-size:.75rem;color:var(--text-secondary);">
+          Updated: <?= e($hu['hwid_updated_at'] ?? '—') ?>
+        </div>
+      </div>
+    <?php endforeach; ?>
   </div>
 </div>
 
-<!-- Audit Logs -->
+<!-- ========== AUDIT LOGS ========== -->
 <div class="card">
   <div class="flex-between flex-between-mobile mb-1">
     <h3>📄 Audit Logs</h3>
@@ -114,31 +140,52 @@ require_once __DIR__ . '/../includes/header.php';
       <?php endif; ?>
     </form>
   </div>
-  <div class="log-scroll">
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>ID</th><th>User</th><th>Action</th><th>IP</th><th>Time</th></tr>
-        </thead>
-        <tbody>
-          <?php foreach ($logs as $log): ?>
-            <tr>
-              <td><?= $log['log_id'] ?></td>
-              <td><?= e($log['username'] ?? 'N/A') ?></td>
-              <td>
-                <span class="badge <?=
-                  str_contains($log['action'], 'ban') ? 'badge-red' :
-                  (str_contains($log['action'], 'hwid') ? 'badge-purple' :
-                  (str_contains($log['action'], 'login') ? 'badge-green' : 'badge-blue'))
-                ?>"><?= e($log['action']) ?></span>
-              </td>
-              <td style="font-family:var(--font-mono);font-size:.8rem;"><?= e($log['ip_address']) ?></td>
-              <td style="font-size:.8rem;white-space:nowrap;"><?= e($log['timestamp']) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+
+  <!-- Desktop table -->
+  <div class="desktop-only">
+    <div class="log-scroll">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>User</th><th>Action</th><th>IP</th><th>Time</th></tr></thead>
+          <tbody>
+            <?php foreach ($logs as $log): ?>
+              <tr>
+                <td><?= $log['log_id'] ?></td>
+                <td><?= e($log['username'] ?? 'N/A') ?></td>
+                <td>
+                  <span class="badge <?=
+                    str_contains($log['action'],'ban')?'badge-red':
+                    (str_contains($log['action'],'hwid')?'badge-purple':
+                    (str_contains($log['action'],'login')?'badge-green':'badge-blue'))
+                  ?>"><?= e($log['action']) ?></span>
+                </td>
+                <td style="font-family:var(--font-mono);font-size:.8rem;"><?= e($log['ip_address']) ?></td>
+                <td style="font-size:.8rem;white-space:nowrap;"><?= e($log['timestamp']) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
+
+  <!-- Mobile log list -->
+  <div class="mobile-only" style="max-height:400px;overflow-y:auto;">
+    <?php foreach ($logs as $log): ?>
+      <div style="padding:.5rem 0;border-bottom:1px solid var(--border-color);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.3rem;flex-wrap:wrap;">
+          <strong style="font-size:.85rem;"><?= e($log['username'] ?? 'N/A') ?></strong>
+          <span class="badge <?=
+            str_contains($log['action'],'ban')?'badge-red':
+            (str_contains($log['action'],'hwid')?'badge-purple':
+            (str_contains($log['action'],'login')?'badge-green':'badge-blue'))
+          ?>"><?= e($log['action']) ?></span>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-secondary);margin-top:.15rem;">
+          <?= e($log['ip_address']) ?> &middot; <?= e($log['timestamp']) ?>
+        </div>
+      </div>
+    <?php endforeach; ?>
   </div>
 </div>
 

@@ -1,8 +1,4 @@
 <?php
-/**
- * Script Management — Responsive
- * Form grid stacks on mobile. Table scrolls horizontally.
- */
 $pageTitle = 'Manage Scripts';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
@@ -25,38 +21,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title === '' && $action !== 'delete') {
             $flash = '❌ Title is required.';
         } elseif ($action === 'add') {
-            $stmt = $pdo->prepare(
+            $pdo->prepare(
                 'INSERT INTO `scripts` (`title`,`description`,`version`,`category`,`is_premium`,`author_id`)
                  VALUES (?,?,?,?,?,?)'
-            );
-            $stmt->execute([$title, $description, $version, $category, $isPremium, $_SESSION['user_id']]);
-            $flash = '✅ Script added successfully.';
+            )->execute([$title, $description, $version, $category, $isPremium, $_SESSION['user_id']]);
+            $flash = '✅ Script added.';
         } elseif ($action === 'edit') {
             $scriptId = (int)($_POST['script_id'] ?? 0);
-            $stmt = $pdo->prepare(
-                'UPDATE `scripts`
-                 SET `title`=?, `description`=?, `version`=?, `category`=?, `is_premium`=?
-                 WHERE `script_id`=?'
-            );
-            $stmt->execute([$title, $description, $version, $category, $isPremium, $scriptId]);
+            $pdo->prepare(
+                'UPDATE `scripts` SET `title`=?,`description`=?,`version`=?,`category`=?,`is_premium`=? WHERE `script_id`=?'
+            )->execute([$title, $description, $version, $category, $isPremium, $scriptId]);
             $flash = '✅ Script updated.';
         } elseif ($action === 'delete') {
-            $scriptId = (int)($_POST['script_id'] ?? 0);
-            $pdo->prepare('DELETE FROM `scripts` WHERE `script_id`=?')->execute([$scriptId]);
+            $pdo->prepare('DELETE FROM `scripts` WHERE `script_id`=?')
+                ->execute([(int)($_POST['script_id'] ?? 0)]);
             $flash = '✅ Script deleted.';
         }
     }
 }
 
 if (isset($_GET['edit'])) {
-    $eStmt = $pdo->prepare('SELECT * FROM `scripts` WHERE `script_id` = ?');
+    $eStmt = $pdo->prepare('SELECT * FROM `scripts` WHERE `script_id`=?');
     $eStmt->execute([(int)$_GET['edit']]);
     $editScript = $eStmt->fetch();
 }
 
 $scripts = $pdo->query(
-    'SELECT s.*, u.username AS author_name
-     FROM `scripts` s
+    'SELECT s.*, u.username AS author_name FROM `scripts` s
      LEFT JOIN `users` u ON u.user_id = s.author_id
      ORDER BY s.script_id DESC'
 )->fetchAll();
@@ -65,7 +56,7 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="flex-between flex-between-mobile mb-1">
-  <h1>📜 Script Management</h1>
+  <h1>📜 Scripts</h1>
   <a href="/mod/index.php" class="btn btn-secondary btn-sm">&larr; Mod Panel</a>
 </div>
 
@@ -75,7 +66,7 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- Add / Edit Form -->
+<!-- Add / Edit form -->
 <div class="card">
   <h3><?= $editScript ? '✏️ Edit Script' : '➕ Add New Script' ?></h3>
   <form method="POST">
@@ -88,20 +79,17 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="grid-3" style="gap:1rem;">
       <div class="form-group">
         <label for="title">Title</label>
-        <input type="text" id="title" name="title" required
-               value="<?= e($editScript['title'] ?? '') ?>">
+        <input type="text" id="title" name="title" required value="<?= e($editScript['title'] ?? '') ?>">
       </div>
       <div class="form-group">
         <label for="version">Version</label>
-        <input type="text" id="version" name="version"
-               value="<?= e($editScript['version'] ?? '1.0.0') ?>">
+        <input type="text" id="version" name="version" value="<?= e($editScript['version'] ?? '1.0.0') ?>">
       </div>
       <div class="form-group">
         <label for="category">Category</label>
         <select id="category" name="category">
           <?php foreach (['Skilling','Combat','Minigames','Moneymaking','Questing','Utility'] as $c): ?>
-            <option value="<?= $c ?>"
-              <?= (($editScript['category'] ?? '') === $c) ? 'selected' : '' ?>>
+            <option value="<?= $c ?>" <?= (($editScript['category'] ?? '')===$c)?'selected':'' ?>>
               <?= $c ?>
             </option>
           <?php endforeach; ?>
@@ -115,17 +103,11 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="form-group">
-      <label>
-        <input type="checkbox" name="is_premium"
-               <?= ($editScript['is_premium'] ?? 0) ? 'checked' : '' ?>>
-        Premium Script
-      </label>
+      <label><input type="checkbox" name="is_premium" <?= ($editScript['is_premium'] ?? 0)?'checked':'' ?>> Premium</label>
     </div>
 
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button type="submit" class="btn btn-primary">
-        <?= $editScript ? 'Update Script' : 'Add Script' ?>
-      </button>
+      <button type="submit" class="btn btn-primary"><?= $editScript ? 'Update' : 'Add Script' ?></button>
       <?php if ($editScript): ?>
         <a href="/mod/scripts.php" class="btn btn-secondary">Cancel</a>
       <?php endif; ?>
@@ -133,42 +115,75 @@ require_once __DIR__ . '/../includes/header.php';
   </form>
 </div>
 
-<!-- Scripts Table -->
+<!-- Scripts listing -->
 <div class="card">
   <h3>All Scripts</h3>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Title</th><th>Cat</th><th>Ver</th><th>Type</th><th>Author</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        <?php foreach ($scripts as $s): ?>
-          <tr>
-            <td><?= $s['script_id'] ?></td>
-            <td><?= e($s['title']) ?></td>
-            <td><?= e($s['category']) ?></td>
-            <td style="font-family:var(--font-mono);"><?= e($s['version']) ?></td>
-            <td>
+
+  <!-- Desktop -->
+  <div class="desktop-only">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Title</th><th>Cat</th><th>Ver</th><th>Type</th><th>Author</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <?php foreach ($scripts as $s): ?>
+            <tr>
+              <td><?= $s['script_id'] ?></td>
+              <td><?= e($s['title']) ?></td>
+              <td><?= e($s['category']) ?></td>
+              <td style="font-family:var(--font-mono);"><?= e($s['version']) ?></td>
+              <td>
+                <?= $s['is_premium']
+                  ? '<span class="badge badge-purple">Premium</span>'
+                  : '<span class="badge badge-green">Free</span>' ?>
+              </td>
+              <td><?= e($s['author_name'] ?? '—') ?></td>
+              <td style="white-space:nowrap;">
+                <a href="/mod/scripts.php?edit=<?= $s['script_id'] ?>" class="btn btn-secondary btn-sm">Edit</a>
+                <form method="POST" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
+                  <input type="hidden" name="form_action" value="delete">
+                  <input type="hidden" name="script_id" value="<?= $s['script_id'] ?>">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          onclick="return confirm('Delete?');">Del</button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile -->
+  <div class="mobile-only">
+    <?php foreach ($scripts as $s): ?>
+      <div style="padding:.75rem 0;border-bottom:1px solid var(--border-color);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
+          <div>
+            <strong><?= e($s['title']) ?></strong>
+            <div style="font-size:.78rem;color:var(--text-secondary);margin-top:.15rem;">
+              <?= e($s['category']) ?> &middot;
+              <span style="font-family:var(--font-mono);">v<?= e($s['version']) ?></span> &middot;
               <?= $s['is_premium']
                 ? '<span class="badge badge-purple">Premium</span>'
                 : '<span class="badge badge-green">Free</span>' ?>
-            </td>
-            <td><?= e($s['author_name'] ?? '—') ?></td>
-            <td style="white-space:nowrap;">
-              <a href="/mod/scripts.php?edit=<?= $s['script_id'] ?>"
-                 class="btn btn-secondary btn-sm">Edit</a>
-              <form method="POST" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
-                <input type="hidden" name="form_action" value="delete">
-                <input type="hidden" name="script_id" value="<?= $s['script_id'] ?>">
-                <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Delete this script?');">Del</button>
-              </form>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+            </div>
+          </div>
+          <div style="display:flex;gap:.3rem;flex-shrink:0;">
+            <a href="/mod/scripts.php?edit=<?= $s['script_id'] ?>" class="btn btn-secondary btn-sm">Edit</a>
+            <form method="POST" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="<?= e(generateCSRF()) ?>">
+              <input type="hidden" name="form_action" value="delete">
+              <input type="hidden" name="script_id" value="<?= $s['script_id'] ?>">
+              <button type="submit" class="btn btn-danger btn-sm"
+                      onclick="return confirm('Delete?');">Del</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <?php endforeach; ?>
   </div>
 </div>
 
