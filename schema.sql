@@ -221,3 +221,11 @@ INSERT INTO `forum_boards` (`category_id`, `name`, `description`, `sort_order`) 
   (2, 'Scripting Help',      'Get help writing your own scripts',              3),
   (3, 'Client Support',      'Troubleshoot client issues',                     1),
   (3, 'Account & Billing',   'Subscription and account questions',             2);
+
+-- FULLTEXT indexes for forum search
+ALTER TABLE `forum_threads` ADD FULLTEXT INDEX `ft_thread_title` (`title`);
+ALTER TABLE `forum_posts`   ADD FULLTEXT INDEX `ft_post_body` (`body`);
+
+-- Track who edited a post (optional but useful)
+ALTER TABLE `forum_posts`
+  ADD COLUMN `edited_by` INT UNSIGNED DEFAULT NULL AFTER `updated_at`;
