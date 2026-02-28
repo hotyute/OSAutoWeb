@@ -310,7 +310,7 @@ initSession();
 
 <!-- ===== NAVIGATION BAR ===== -->
 <header class="navbar">
-  <a href="/index.php" class="brand">&gt;<span>OSRS</span>_Client</a>
+  <a href="/index.php" class="brand">&gt;<span>OS</span>Auto</a>
   <nav>
     <?php if (isLoggedIn()): ?>
       <a href="/dashboard.php">Dashboard</a>
