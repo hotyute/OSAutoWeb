@@ -1,11 +1,6 @@
 <?php
 /**
- * Registration Page
- * --------------------------------------------------------
- * Security:
- *   • CSRF validated.
- *   • Password hashed with PASSWORD_DEFAULT (bcrypt/argon2).
- *   • Username & email uniqueness enforced at DB level + pre-check.
+ * Registration Page — Responsive
  */
 $pageTitle = 'Register';
 require_once __DIR__ . '/includes/db.php';
@@ -26,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $confirm  = $_POST['password_confirm'] ?? '';
 
-        /* Validation */
         if ($username === '' || $email === '' || $password === '') {
             $error = 'All fields are required.';
         } elseif (!preg_match('/^[A-Za-z0-9_]{3,32}$/', $username)) {
@@ -38,19 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($password !== $confirm) {
             $error = 'Passwords do not match.';
         } else {
-            /* Check uniqueness */
             $chk = $pdo->prepare('SELECT `user_id` FROM `users` WHERE `username` = ? OR `email` = ?');
             $chk->execute([$username, $email]);
             if ($chk->fetch()) {
                 $error = 'Username or email already taken.';
             } else {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-
                 $ins = $pdo->prepare(
                     'INSERT INTO `users` (`username`, `email`, `password_hash`) VALUES (?, ?, ?)'
                 );
                 $ins->execute([$username, $email, $hash]);
-
                 $newId = (int)$pdo->lastInsertId();
                 logAction($pdo, $newId, 'register');
                 $success = 'Account created! You may now <a href="/login.php">log in</a>.';
@@ -62,15 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div style="max-width:420px;margin:2rem auto;">
+<div class="form-card">
   <div class="card">
-    <h2 style="text-align:center;">📝 Create Account</h2>
+    <h2 class="text-center">📝 Create Account</h2>
 
     <?php if ($error): ?>
       <div class="alert alert-error"><?= e($error) ?></div>
     <?php endif; ?>
     <?php if ($success): ?>
-      <div class="alert alert-success"><?= $success /* contains safe HTML link */ ?></div>
+      <div class="alert alert-success"><?= $success ?></div>
     <?php endif; ?>
 
     <form method="POST" autocomplete="off">
@@ -95,7 +86,7 @@ require_once __DIR__ . '/includes/header.php';
         <input type="password" id="password_confirm" name="password_confirm" required>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
+      <button type="submit" class="btn btn-primary w-full">Register</button>
     </form>
 
     <p class="text-center mt-1" style="font-size:.85rem;color:var(--text-secondary);">

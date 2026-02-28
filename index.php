@@ -1,7 +1,7 @@
 <?php
 /**
- * Public Landing Page
- * Hero section, feature highlights, and pricing tiers.
+ * Public Landing Page — Responsive
+ * Hero buttons wrap on mobile. Pricing & features auto-stack.
  */
 $pageTitle = 'OSRS Client — Home';
 require_once __DIR__ . '/includes/header.php';
@@ -12,8 +12,10 @@ require_once __DIR__ . '/includes/header.php';
   <h1><span class="green">&gt;</span> Dominate <span class="purple">Gielinor</span></h1>
   <p>The most advanced Old School RuneScape automation client.
      Undetectable anti-ban, pixel-perfect input, and a growing library of premium scripts.</p>
-  <a href="/register.php" class="btn btn-primary" style="margin-right:.5rem;">Get Started</a>
-  <a href="#pricing" class="btn btn-secondary">View Pricing</a>
+  <div class="hero-buttons">
+    <a href="/register.php" class="btn btn-primary">Get Started</a>
+    <a href="#pricing" class="btn btn-secondary">View Pricing</a>
+  </div>
 </section>
 
 <!-- FEATURES -->
@@ -76,7 +78,7 @@ require_once __DIR__ . '/includes/header.php';
         <li>1 HWID Bind</li>
         <li>Community Support</li>
       </ul>
-      <a href="/register.php" class="btn btn-secondary" style="width:100%;">Select</a>
+      <a href="/register.php" class="btn btn-secondary w-full">Select</a>
     </div>
     <div class="card pricing-card featured">
       <h3>Pro</h3>
@@ -86,7 +88,7 @@ require_once __DIR__ . '/includes/header.php';
         <li>Priority Anti-Ban</li>
         <li>Discord Support</li>
       </ul>
-      <a href="/register.php" class="btn btn-primary" style="width:100%;">Select</a>
+      <a href="/register.php" class="btn btn-primary w-full">Select</a>
     </div>
     <div class="card pricing-card">
       <h3>Enterprise</h3>
@@ -96,7 +98,7 @@ require_once __DIR__ . '/includes/header.php';
         <li>Custom Script Dev</li>
         <li>Dedicated Manager</li>
       </ul>
-      <a href="/register.php" class="btn btn-purple" style="width:100%;">Contact Us</a>
+      <a href="/register.php" class="btn btn-purple w-full">Contact Us</a>
     </div>
   </div>
 </section>

@@ -1,15 +1,7 @@
 <?php
 /**
- * HWID Reset
- * --------------------------------------------------------
- * Business rule: users may reset their bound Hardware ID
- * once every 7 days. The `hwid_updated_at` column is
- * checked before allowing the operation.
- *
- * Security:
- *   • Requires authentication.
- *   • CSRF on the POST action.
- *   • Action is logged in the audit table.
+ * HWID Reset — Responsive
+ * Uses .form-card for centering, responsive max-width.
  */
 $pageTitle = 'HWID Reset';
 require_once __DIR__ . '/includes/db.php';
@@ -20,13 +12,11 @@ $user    = currentUser($pdo);
 $error   = '';
 $success = '';
 
-/* Calculate cooldown */
-$canReset   = true;
-$nextReset  = null;
+$canReset  = true;
+$nextReset = null;
 if ($user['hwid_updated_at']) {
-    $lastReset  = strtotime($user['hwid_updated_at']);
-    $cooldownEnd = $lastReset + (7 * 86400); // +7 days
-
+    $lastReset   = strtotime($user['hwid_updated_at']);
+    $cooldownEnd = $lastReset + (7 * 86400);
     if (time() < $cooldownEnd) {
         $canReset  = false;
         $nextReset = date('Y-m-d H:i:s', $cooldownEnd);
@@ -39,18 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!$canReset) {
         $error = 'You must wait until ' . e($nextReset) . ' before resetting again.';
     } else {
-        /* Perform the reset: NULL out the HWID, stamp the time */
         $stmt = $pdo->prepare(
             'UPDATE `users` SET `hwid` = NULL, `hwid_updated_at` = NOW() WHERE `user_id` = ?'
         );
         $stmt->execute([$user['user_id']]);
-
         logAction($pdo, $user['user_id'], 'hwid_reset');
-        $success = 'HWID has been cleared. Launch the client to bind a new one.';
-
-        /* Refresh user data */
-        $user     = currentUser($pdo);
-        $canReset = false;
+        $success   = 'HWID has been cleared. Launch the client to bind a new one.';
+        $user      = currentUser($pdo);
+        $canReset  = false;
         $nextReset = date('Y-m-d H:i:s', time() + 7 * 86400);
     }
 }
@@ -71,7 +57,7 @@ require_once __DIR__ . '/includes/header.php';
 
     <p class="mb-1" style="color:var(--text-secondary);">
       Current HWID:
-      <strong style="font-family:var(--font-mono);color:var(--accent-purple);">
+      <strong style="font-family:var(--font-mono);color:var(--accent-purple);word-break:break-all;">
         <?= $user['hwid'] ? e($user['hwid']) : '(not bound)' ?>
       </strong>
     </p>
@@ -82,9 +68,7 @@ require_once __DIR__ . '/includes/header.php';
         <p style="color:var(--text-secondary);font-size:.88rem;" class="mb-1">
           ⚠️ You may only reset once every 7 days. This action is logged.
         </p>
-        <button type="submit" class="btn btn-danger" style="width:100%;">
-          Reset My HWID
-        </button>
+        <button type="submit" class="btn btn-danger w-full">Reset My HWID</button>
       </form>
     <?php else: ?>
       <div class="alert alert-warn">

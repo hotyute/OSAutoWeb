@@ -1,13 +1,7 @@
 <?php
 /**
- * User Dashboard
- * --------------------------------------------------------
- * Shows:
- *   • Active subscription status & expiry countdown.
- *   • HWID status with reset link.
- *   • Client download button.
- *   • Available scripts catalogue.
- * Access: any authenticated user.
+ * User Dashboard — Responsive
+ * Script table wrapped in .table-wrap for mobile scroll.
  */
 $pageTitle = 'Dashboard';
 require_once __DIR__ . '/includes/db.php';
@@ -16,16 +10,12 @@ requireLogin();
 
 $user = currentUser($pdo);
 
-/* Fetch active subscription */
 $subStmt = $pdo->prepare(
-    'SELECT * FROM `subscriptions`
-     WHERE `user_id` = ?
-     ORDER BY `expires_at` DESC LIMIT 1'
+    'SELECT * FROM `subscriptions` WHERE `user_id` = ? ORDER BY `expires_at` DESC LIMIT 1'
 );
 $subStmt->execute([$user['user_id']]);
 $sub = $subStmt->fetch();
 
-/* Fetch available scripts */
 $scripts = $pdo->query(
     'SELECT s.*, u.username AS author_name
      FROM `scripts` s
@@ -39,7 +29,7 @@ require_once __DIR__ . '/includes/header.php';
 <h1 class="mb-1">👋 Welcome, <?= e($user['username']) ?></h1>
 
 <div class="grid-3">
-  <!-- Subscription Card -->
+  <!-- Subscription -->
   <div class="card">
     <h3>📋 Subscription</h3>
     <?php if ($sub): ?>
@@ -66,11 +56,11 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
   </div>
 
-  <!-- HWID Card -->
+  <!-- HWID -->
   <div class="card">
     <h3>🖥️ Hardware ID</h3>
     <?php if ($user['hwid']): ?>
-      <p style="font-family:var(--font-mono);font-size:.82rem;color:var(--accent-purple);word-break:break-all;">
+      <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--accent-purple);word-break:break-all;">
         <?= e($user['hwid']) ?>
       </p>
       <a href="/hwid_reset.php" class="btn btn-secondary btn-sm mt-1">Reset HWID</a>
@@ -81,51 +71,50 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
   </div>
 
-  <!-- Download Card -->
+  <!-- Download -->
   <div class="card text-center">
     <h3>⬇️ Client Download</h3>
     <p style="color:var(--text-secondary);font-size:.88rem;">Latest stable build</p>
-    <a href="#" class="btn btn-primary mt-1" onclick="alert('Download link placeholder');">
-      Download v2.4.1
-    </a>
+    <a href="#" class="btn btn-primary mt-1"
+       onclick="alert('Download link placeholder');">Download v2.4.1</a>
   </div>
 </div>
 
-<!-- Scripts Catalogue -->
+<!-- Scripts -->
 <div class="card">
-  <div class="flex-between mb-1">
+  <div class="flex-between flex-between-mobile mb-1">
     <h3>📜 Script Library</h3>
     <span class="badge badge-blue"><?= count($scripts) ?> scripts</span>
   </div>
   <?php if ($scripts): ?>
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Version</th>
-          <th>Type</th>
-          <th>Author</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($scripts as $s): ?>
+    <div class="table-wrap">
+      <table>
+        <thead>
           <tr>
-            <td><?= e($s['title']) ?></td>
-            <td><?= e($s['category']) ?></td>
-            <td><span style="font-family:var(--font-mono);"><?= e($s['version']) ?></span></td>
-            <td>
-              <?php if ($s['is_premium']): ?>
-                <span class="badge badge-purple">Premium</span>
-              <?php else: ?>
-                <span class="badge badge-green">Free</span>
-              <?php endif; ?>
-            </td>
-            <td><?= e($s['author_name'] ?? 'System') ?></td>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Version</th>
+            <th>Type</th>
+            <th>Author</th>
           </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <?php foreach ($scripts as $s): ?>
+            <tr>
+              <td><?= e($s['title']) ?></td>
+              <td><?= e($s['category']) ?></td>
+              <td><span style="font-family:var(--font-mono);"><?= e($s['version']) ?></span></td>
+              <td>
+                <?= $s['is_premium']
+                  ? '<span class="badge badge-purple">Premium</span>'
+                  : '<span class="badge badge-green">Free</span>' ?>
+              </td>
+              <td><?= e($s['author_name'] ?? 'System') ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
   <?php else: ?>
     <p style="color:var(--text-secondary);">No scripts available yet.</p>
   <?php endif; ?>
