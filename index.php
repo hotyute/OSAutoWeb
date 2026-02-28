@@ -70,7 +70,7 @@ require_once __DIR__ . '/includes/header.php';
   <div class="grid-3">
     <div class="card pricing-card">
       <h3>Starter</h3>
-      <div class="price">$9<span>/mo</span></div>
+      <div class="price">£5<span>/mo</span></div>
       <ul>
         <li>5 Free Scripts</li>
         <li>1 HWID Bind</li>
@@ -80,7 +80,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
     <div class="card pricing-card featured">
       <h3>Pro</h3>
-      <div class="price">$19<span>/mo</span></div>
+      <div class="price">£10<span>/mo</span></div>
       <ul>
         <li>All Scripts</li>
         <li>Priority Anti-Ban</li>
@@ -90,7 +90,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
     <div class="card pricing-card">
       <h3>Enterprise</h3>
-      <div class="price">$49<span>/mo</span></div>
+      <div class="price">£30<span>/mo</span></div>
       <ul>
         <li>Unlimited Accounts</li>
         <li>Custom Script Dev</li>
