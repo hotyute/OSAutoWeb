@@ -8,13 +8,16 @@ requireLogin();
 $threadId = (int)($_GET['id'] ?? 0);
 if ($threadId < 1) redirect('/forum/index.php');
 
-$tStmt = $pdo->prepare(
-    'SELECT t.*, u.username AS op_username,
-            b.name AS board_name, b.board_id
-     FROM `forum_threads` t
-     JOIN `users` u ON u.user_id = t.user_id
-     JOIN `forum_boards` b ON b.board_id = t.board_id
-     WHERE t.thread_id = ? AND t.is_deleted = 0'
+$pStmt = $pdo->prepare(
+    'SELECT p.*, u.username, u.role AS user_role,
+            u.post_count AS user_posts, u.signature,
+            u.created_at AS user_joined, u.user_id AS author_id,
+            u.avatar_path, u.display_role
+     FROM `forum_posts` p
+     JOIN `users` u ON u.user_id = p.user_id
+     WHERE p.thread_id = ? AND p.is_deleted = 0
+     ORDER BY p.created_at ASC
+     LIMIT ? OFFSET ?'
 );
 $tStmt->execute([$threadId]);
 $thread = $tStmt->fetch();
@@ -162,17 +165,35 @@ forumCSS();
 ?>
 <div class="post-card" id="post-<?= $p['post_id'] ?>">
   <div class="post-sidebar">
-    <div class="avatar"><?= strtoupper(mb_substr($p['username'],0,1)) ?></div>
+    <?php
+      $avUrl = getAvatarUrl($pdo, $p['avatar_path'] ?? null, $p['username']);
+    ?>
+    <?php if ($avUrl): ?>
+      <img src="<?= e($avUrl) ?>" alt="<?= e($p['username']) ?>"
+           style="width:56px;height:56px;border-radius:50%;object-fit:cover;
+                  border:2px solid var(--border-color);margin:0 auto .5rem;">
+    <?php else: ?>
+      <div class="avatar"><?= strtoupper(mb_substr($p['username'], 0, 1)) ?></div>
+    <?php endif; ?>
     <div>
       <div style="font-weight:700;margin-bottom:.15rem;">
-        <a href="/forum/profile.php?id=<?= $p['author_id'] ?>" style="color:var(--text-primary);"><?= e($p['username']) ?></a>
+        <?php if (settingEnabled($pdo, 'forum_user_profiles')): ?>
+          <a href="/forum/profile.php?id=<?= $p['author_id'] ?>" style="color:var(--text-primary);"><?= e($p['username']) ?></a>
+        <?php else: ?>
+          <?= e($p['username']) ?>
+        <?php endif; ?>
       </div>
       <span class="badge <?= $p['user_role']==='admin'?'badge-red':($p['user_role']==='moderator'?'badge-amber':'badge-blue') ?>">
         <?= e(ucfirst($p['user_role'])) ?>
       </span>
+      <?php if ($p['display_role'] ?? null): ?>
+        <div style="font-size:.72rem;color:var(--accent-purple);font-style:italic;margin-top:.2rem;">
+          <?= e($p['display_role']) ?>
+        </div>
+      <?php endif; ?>
       <div class="sidebar-stats" style="margin-top:.45rem;">
         <div style="font-size:.72rem;color:var(--text-secondary);">Posts: <?= number_format($p['user_posts']) ?></div>
-        <div style="font-size:.72rem;color:var(--text-secondary);">Joined: <?= e(date('M Y',strtotime($p['user_joined']))) ?></div>
+        <div style="font-size:.72rem;color:var(--text-secondary);">Joined: <?= e(date('M Y', strtotime($p['user_joined']))) ?></div>
       </div>
     </div>
   </div>

@@ -185,3 +185,20 @@ function threadLastPage(int $replyCount, int $perPage = 15): int
 {
     return max(1, (int)ceil(($replyCount + 1) / $perPage));
 }
+
+/**
+ * Render a user avatar (img or letter fallback) for use inside post cards.
+ * Returns raw HTML string.
+ */
+function renderAvatar(PDO $pdo, ?string $avatarPath, string $username, int $size = 56): string
+{
+    $avUrl = getAvatarUrl($pdo, $avatarPath, $username);
+    if ($avUrl) {
+        return '<img src="' . e($avUrl) . '" alt="' . e($username) . '" '
+             . 'style="width:' . $size . 'px;height:' . $size . 'px;border-radius:50%;object-fit:cover;'
+             . 'border:2px solid var(--border-color);">';
+    }
+    return '<div class="avatar" style="width:' . $size . 'px;height:' . $size . 'px;">'
+         . strtoupper(mb_substr($username, 0, 1))
+         . '</div>';
+}

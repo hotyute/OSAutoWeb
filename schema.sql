@@ -229,3 +229,48 @@ ALTER TABLE `forum_posts`   ADD FULLTEXT INDEX `ft_post_body` (`body`);
 -- Track who edited a post (optional but useful)
 ALTER TABLE `forum_posts`
   ADD COLUMN `edited_by` INT UNSIGNED DEFAULT NULL AFTER `updated_at`;
+
+-- -----------------------------------------------------------
+-- SITE SETTINGS (key-value config, admin-managed)
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `site_settings` (
+  `setting_key`   VARCHAR(80)  NOT NULL,
+  `setting_value` TEXT         DEFAULT NULL,
+  `label`         VARCHAR(200) DEFAULT NULL,
+  `category`      VARCHAR(60)  NOT NULL DEFAULT 'general',
+  `sort_order`    INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------
+-- ALTER users: avatar + online tracking
+-- -----------------------------------------------------------
+ALTER TABLE `users`
+  ADD COLUMN `avatar_path`  VARCHAR(255) DEFAULT NULL AFTER `post_count`,
+  ADD COLUMN `last_seen_at` DATETIME     DEFAULT NULL AFTER `avatar_path`,
+  ADD COLUMN `bio`          TEXT         DEFAULT NULL AFTER `signature`,
+  ADD COLUMN `discord_tag`  VARCHAR(60)  DEFAULT NULL AFTER `bio`,
+  ADD COLUMN `display_role` VARCHAR(60)  DEFAULT NULL AFTER `discord_tag`;
+
+-- Index for online lookups
+CREATE INDEX idx_last_seen ON `users` (`last_seen_at`);
+
+-- -----------------------------------------------------------
+-- SEED: Default settings (all features ON)
+-- -----------------------------------------------------------
+INSERT INTO `site_settings` (`setting_key`, `setting_value`, `label`, `category`, `sort_order`) VALUES
+  ('forum_enabled',        '1', 'Enable Forum',                        'forum',    1),
+  ('forum_whos_online',    '1', 'Show Who''s Online Panel',            'forum',    2),
+  ('forum_avatars',        '1', 'Allow Custom Avatars',                'forum',    3),
+  ('forum_signatures',     '1', 'Show Forum Signatures',               'forum',    4),
+  ('forum_search',         '1', 'Enable Forum Search',                 'forum',    5),
+  ('forum_user_profiles',  '1', 'Enable Public User Profiles',         'forum',    6),
+  ('forum_post_editing',   '1', 'Allow Users to Edit Own Posts',        'forum',    7),
+  ('forum_quoting',        '1', 'Enable Quote Reply Button',           'forum',    8),
+  ('forum_recent_threads', '1', 'Show Recent Threads on Forum Home',   'forum',    9),
+  ('hero_screenshots',     '1', 'Show Screenshot Gallery on Landing',  'landing', 10),
+  ('hero_features',        '1', 'Show Feature Cards on Landing',       'landing', 11),
+  ('hero_pricing',         '1', 'Show Pricing Section on Landing',     'landing', 12),
+  ('avatar_max_size_kb',   '2048', 'Max Avatar File Size (KB)',        'limits',  20),
+  ('online_threshold_min', '15',   'Online Threshold (Minutes)',       'limits',  21),
+  ('maintenance_mode',     '0',    'Maintenance Mode (blocks non-admins)', 'general', 30);

@@ -2,6 +2,12 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/functions.php';
 initSession();
+
+/* Track online status + check maintenance on every page load */
+if (isLoggedIn()) {
+    updateLastSeen($pdo);
+}
+checkMaintenance($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
