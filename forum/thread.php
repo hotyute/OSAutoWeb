@@ -35,7 +35,8 @@ $offset     = ($page - 1) * $perPage;
 $pStmt = $pdo->prepare(
     'SELECT p.*, u.username, u.role AS user_role,
             u.post_count AS user_posts, u.signature,
-            u.created_at AS user_joined, u.user_id AS author_id
+            u.created_at AS user_joined, u.user_id AS author_id,
+            u.avatar_path, u.display_role
      FROM `forum_posts` p
      JOIN `users` u ON u.user_id = p.user_id
      WHERE p.thread_id = ? AND p.is_deleted = 0
