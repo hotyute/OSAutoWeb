@@ -274,3 +274,27 @@ INSERT INTO `site_settings` (`setting_key`, `setting_value`, `label`, `category`
   ('avatar_max_size_kb',   '2048', 'Max Avatar File Size (KB)',        'limits',  20),
   ('online_threshold_min', '15',   'Online Threshold (Minutes)',       'limits',  21),
   ('maintenance_mode',     '0',    'Maintenance Mode (blocks non-admins)', 'general', 30);
+
+  -- -----------------------------------------------------------
+-- HERO SCREENSHOTS (gallery items on landing page)
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hero_screenshots` (
+  `screenshot_id` INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `title`         VARCHAR(120)  NOT NULL,
+  `description`   VARCHAR(255)  DEFAULT NULL,
+  `image_path`    VARCHAR(255)  NOT NULL,
+  `sort_order`    INT           NOT NULL DEFAULT 0,
+  `created_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`screenshot_id`)
+) ENGINE=InnoDB;
+
+CREATE INDEX idx_ss_sort ON `hero_screenshots` (`sort_order` ASC);
+
+-- -----------------------------------------------------------
+-- Add hero background setting
+-- -----------------------------------------------------------
+INSERT IGNORE INTO `site_settings` (`setting_key`, `setting_value`, `label`, `category`, `sort_order`)
+VALUES
+  ('hero_bg_image',   '', 'Hero Background Image Path',  'landing', 13),
+  ('hero_heading',    '> Dominate <span class="purple">Gielinor</span>', 'Hero Heading (HTML allowed for admins)', 'landing', 14),
+  ('hero_subtext',    'The most advanced Old School RuneScape automation client. Undetectable anti-ban, pixel-perfect input, and a growing library of premium scripts.', 'Hero Subtext', 'landing', 15);
