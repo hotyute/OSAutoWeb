@@ -162,17 +162,35 @@ forumCSS();
 ?>
 <div class="post-card" id="post-<?= $p['post_id'] ?>">
   <div class="post-sidebar">
-    <div class="avatar"><?= strtoupper(mb_substr($p['username'],0,1)) ?></div>
+    <?php
+      $avUrl = getAvatarUrl($pdo, $p['avatar_path'] ?? null, $p['username']);
+    ?>
+    <?php if ($avUrl): ?>
+      <img src="<?= e($avUrl) ?>" alt="<?= e($p['username']) ?>"
+           style="width:56px;height:56px;border-radius:50%;object-fit:cover;
+                  border:2px solid var(--border-color);margin:0 auto .5rem;">
+    <?php else: ?>
+      <div class="avatar"><?= strtoupper(mb_substr($p['username'], 0, 1)) ?></div>
+    <?php endif; ?>
     <div>
       <div style="font-weight:700;margin-bottom:.15rem;">
-        <a href="/forum/profile.php?id=<?= $p['author_id'] ?>" style="color:var(--text-primary);"><?= e($p['username']) ?></a>
+        <?php if (settingEnabled($pdo, 'forum_user_profiles')): ?>
+          <a href="/forum/profile.php?id=<?= $p['author_id'] ?>" style="color:var(--text-primary);"><?= e($p['username']) ?></a>
+        <?php else: ?>
+          <?= e($p['username']) ?>
+        <?php endif; ?>
       </div>
       <span class="badge <?= $p['user_role']==='admin'?'badge-red':($p['user_role']==='moderator'?'badge-amber':'badge-blue') ?>">
         <?= e(ucfirst($p['user_role'])) ?>
       </span>
+      <?php if ($p['display_role'] ?? null): ?>
+        <div style="font-size:.72rem;color:var(--accent-purple);font-style:italic;margin-top:.2rem;">
+          <?= e($p['display_role']) ?>
+        </div>
+      <?php endif; ?>
       <div class="sidebar-stats" style="margin-top:.45rem;">
         <div style="font-size:.72rem;color:var(--text-secondary);">Posts: <?= number_format($p['user_posts']) ?></div>
-        <div style="font-size:.72rem;color:var(--text-secondary);">Joined: <?= e(date('M Y',strtotime($p['user_joined']))) ?></div>
+        <div style="font-size:.72rem;color:var(--text-secondary);">Joined: <?= e(date('M Y', strtotime($p['user_joined']))) ?></div>
       </div>
     </div>
   </div>
