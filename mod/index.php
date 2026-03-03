@@ -49,7 +49,11 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="flex-between flex-between-mobile mb-1">
   <h1>🛡️ Moderator Panel</h1>
-  <a href="/mod/scripts.php" class="btn btn-secondary btn-sm">📜 Scripts</a>
+  <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+    <a href="/admin/users.php" class="btn btn-primary btn-sm">👥 Manage Users</a>
+    <a href="/mod/scripts.php" class="btn btn-secondary btn-sm">📜 Scripts</a>
+    <a href="/forum/punishments.php" class="btn btn-secondary btn-sm">⚖️ Infractions</a>
+  </div>
 </div>
 
 <?php if ($flash): ?>
@@ -58,11 +62,18 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- ========== HWID MANAGEMENT ========== -->
+<!-- Mod limitations notice -->
+<?php if (!hasRole('admin')): ?>
+  <div class="alert alert-warn" style="font-size:.85rem;">
+    🔒 <strong>Mod Access:</strong> You can manage users with limited permissions — max 3-day subs,
+    cannot affect admins. Full access requires admin privileges.
+  </div>
+<?php endif; ?>
+
+<!-- HWID Management -->
 <div class="card">
   <h3>🖥️ Bound HWIDs</h3>
 
-  <!-- Desktop table -->
   <div class="desktop-only">
     <div class="table-wrap">
       <table>
@@ -73,9 +84,7 @@ require_once __DIR__ . '/../includes/header.php';
           <?php foreach ($hwidUsers as $hu): ?>
             <tr>
               <td><strong><?= e($hu['username']) ?></strong></td>
-              <td style="font-family:var(--font-mono);font-size:.76rem;">
-                <?= e($hu['hwid']) ?>
-              </td>
+              <td style="font-family:var(--font-mono);font-size:.76rem;"><?= e($hu['hwid']) ?></td>
               <td style="font-size:.82rem;"><?= e($hu['hwid_updated_at'] ?? '—') ?></td>
               <td>
                 <form method="POST" style="display:inline;">
@@ -96,7 +105,6 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </div>
 
-  <!-- Mobile cards -->
   <div class="mobile-only">
     <?php if (!$hwidUsers): ?>
       <p style="color:var(--text-secondary);text-align:center;padding:1rem 0;">No bound HWIDs.</p>
@@ -127,7 +135,7 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 </div>
 
-<!-- ========== AUDIT LOGS ========== -->
+<!-- Audit Logs -->
 <div class="card">
   <div class="flex-between flex-between-mobile mb-1">
     <h3>📄 Audit Logs</h3>
@@ -141,7 +149,6 @@ require_once __DIR__ . '/../includes/header.php';
     </form>
   </div>
 
-  <!-- Desktop table -->
   <div class="desktop-only">
     <div class="log-scroll">
       <div class="table-wrap">
@@ -169,7 +176,6 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </div>
 
-  <!-- Mobile log list -->
   <div class="mobile-only" style="max-height:400px;overflow-y:auto;">
     <?php foreach ($logs as $log): ?>
       <div style="padding:.5rem 0;border-bottom:1px solid var(--border-color);">

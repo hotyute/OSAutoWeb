@@ -238,4 +238,16 @@ forumCSS();
   <?php endif; ?>
 </div>
 
+<?php
+/**
+ * Include punishment modal on profile pages too.
+ * Renders only for forum_mod+ viewing a lower-ranked user.
+ */
+if (canIssuePunishments()
+    && $userId != $_SESSION['user_id']
+    && canModerate($profile['role'])) {
+    require_once __DIR__ . '/../includes/punishment_modal.php';
+}
+?>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

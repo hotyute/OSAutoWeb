@@ -510,7 +510,6 @@ checkMaintenance($pdo);
         <?php endif; ?>
         <?php if (hasRole('moderator')): ?>
           <li><a href="/mod/index.php" class="role-mod">Mod Panel</a></li>
-          <li><a href="/admin/users.php" class="role-mod">Users</a></li>
         <?php endif; ?>
         <?php if (hasRole('admin')): ?>
           <li><a href="/admin/index.php" class="role-admin">Admin</a></li>
@@ -539,7 +538,6 @@ checkMaintenance($pdo);
         <?php endif; ?>
         <?php if (hasRole('moderator')): ?>
           <a href="/mod/index.php" class="role-mod">🛡️ Mod Panel</a>
-          <a href="/admin/users.php" class="role-mod">👥 Users</a>
         <?php endif; ?>
         <?php if (hasRole('admin')): ?>
           <a href="/admin/index.php" class="role-admin">⚙️ Admin</a>
