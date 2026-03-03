@@ -3,7 +3,12 @@ $pageTitle = 'New Thread';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
+
+$muted = isUserMuted($pdo, $_SESSION['user_id']);
+if ($muted) {
+    redirect('/forum/index.php');
+}
 
 $boardId = (int)($_GET['board'] ?? $_POST['board_id'] ?? 0);
 

@@ -502,11 +502,18 @@ checkMaintenance($pdo);
         <li><a href="/dashboard.php">Dashboard</a></li>
         <li><a href="/forum/index.php">Forum</a></li>
         <li><a href="/settings.php">Settings</a></li>
+        <?php if (hasRole('scripter')): ?>
+          <li><a href="/mod/scripts.php" style="color:var(--accent-green);">Scripts</a></li>
+        <?php endif; ?>
+        <?php if (hasRole('forum_mod')): ?>
+          <li><a href="/forum/punishments.php" class="role-mod">Infractions</a></li>
+        <?php endif; ?>
         <?php if (hasRole('moderator')): ?>
           <li><a href="/mod/index.php" class="role-mod">Mod Panel</a></li>
+          <li><a href="/admin/users.php" class="role-mod">Users</a></li>
         <?php endif; ?>
         <?php if (hasRole('admin')): ?>
-          <li><a href="/admin/index.php" class="role-admin">Admin Panel</a></li>
+          <li><a href="/admin/index.php" class="role-admin">Admin</a></li>
         <?php endif; ?>
         <li><a href="/logout.php" class="btn-logout">Logout</a></li>
       <?php else: ?>
@@ -519,24 +526,31 @@ checkMaintenance($pdo);
     </button>
   </div>
   <nav class="mobile-menu" id="mobileMenu">
-    <?php if (isLoggedIn()): ?>
-      <a href="/dashboard.php">📊 Dashboard</a>
-      <a href="/forum/index.php">💬 Forum</a>
-      <a href="/settings.php">⚙️ Settings</a>
-      <div class="divider"></div>
-      <?php if (hasRole('moderator')): ?>
-        <a href="/mod/index.php" class="role-mod">🛡️ Mod Panel</a>
+      <?php if (isLoggedIn()): ?>
+        <a href="/dashboard.php">📊 Dashboard</a>
+        <a href="/forum/index.php">💬 Forum</a>
+        <a href="/settings.php">⚙️ Settings</a>
+        <div class="divider"></div>
+        <?php if (hasRole('scripter')): ?>
+          <a href="/mod/scripts.php" style="color:var(--accent-green);">📜 Scripts</a>
+        <?php endif; ?>
+        <?php if (hasRole('forum_mod')): ?>
+          <a href="/forum/punishments.php" class="role-mod">⚖️ Infractions</a>
+        <?php endif; ?>
+        <?php if (hasRole('moderator')): ?>
+          <a href="/mod/index.php" class="role-mod">🛡️ Mod Panel</a>
+          <a href="/admin/users.php" class="role-mod">👥 Users</a>
+        <?php endif; ?>
+        <?php if (hasRole('admin')): ?>
+          <a href="/admin/index.php" class="role-admin">⚙️ Admin</a>
+        <?php endif; ?>
+        <div class="divider"></div>
+        <a href="/logout.php" class="btn-logout">Logout</a>
+      <?php else: ?>
+        <a href="/login.php">🔐 Login</a>
+        <a href="/register.php" class="btn-register">📝 Register</a>
       <?php endif; ?>
-      <?php if (hasRole('admin')): ?>
-        <a href="/admin/index.php" class="role-admin">⚙️ Admin Panel</a>
-      <?php endif; ?>
-      <?php if (hasRole('moderator')): ?><div class="divider"></div><?php endif; ?>
-      <a href="/logout.php" class="btn-logout">Logout</a>
-    <?php else: ?>
-      <a href="/login.php">🔐 Login</a>
-      <a href="/register.php" class="btn-register">📝 Register</a>
-    <?php endif; ?>
-  </nav>
+    </nav>
 </header>
 
 <main class="container">

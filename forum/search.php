@@ -3,7 +3,7 @@ $pageTitle = 'Search Forum';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
 
 $query   = trim($_GET['q'] ?? '');
 $boardFilter = (int)($_GET['board'] ?? 0);

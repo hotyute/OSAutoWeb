@@ -3,7 +3,7 @@ $pageTitle = 'Forum';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
 
 if (!settingEnabled($pdo, 'forum_enabled')) {
     redirect('/dashboard.php');

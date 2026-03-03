@@ -298,3 +298,44 @@ VALUES
   ('hero_bg_image',   '', 'Hero Background Image Path',  'landing', 13),
   ('hero_heading',    '> Dominate <span class="purple">Gielinor</span>', 'Hero Heading (HTML allowed for admins)', 'landing', 14),
   ('hero_subtext',    'The most advanced Old School RuneScape automation client. Undetectable anti-ban, pixel-perfect input, and a growing library of premium scripts.', 'Hero Subtext', 'landing', 15);
+
+  -- -----------------------------------------------------------
+-- 1. Expand the role ENUM (non-destructive)
+-- -----------------------------------------------------------
+ALTER TABLE `users`
+  MODIFY COLUMN `role` ENUM('user','scripter','forum_mod','moderator','admin')
+  NOT NULL DEFAULT 'user';
+
+-- -----------------------------------------------------------
+-- 2. Forum Punishments (mutes, bans, warns)
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `forum_punishments` (
+  `punishment_id`  INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  `user_id`        INT UNSIGNED    NOT NULL,
+  `type`           ENUM('warn','mute','forum_ban') NOT NULL,
+  `reason`         TEXT            DEFAULT NULL,
+  `issued_by`      INT UNSIGNED    NOT NULL,
+  `expires_at`     DATETIME        DEFAULT NULL,  /* NULL = permanent */
+  `is_active`      TINYINT(1)      NOT NULL DEFAULT 1,
+  `revoked_by`     INT UNSIGNED    DEFAULT NULL,
+  `revoked_at`     DATETIME        DEFAULT NULL,
+  `ip_address`     VARCHAR(45)     DEFAULT NULL,
+  `created_at`     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`punishment_id`),
+  KEY `idx_fp_user`     (`user_id`, `type`, `is_active`),
+  KEY `idx_fp_active`   (`is_active`, `expires_at`),
+  CONSTRAINT `fk_fp_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fp_issuer`
+    FOREIGN KEY (`issued_by`) REFERENCES `users`(`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------
+-- 3. Add muted_until cache column on users for fast checks
+-- -----------------------------------------------------------
+ALTER TABLE `users`
+  ADD COLUMN `muted_until` DATETIME DEFAULT NULL AFTER `display_role`,
+  ADD COLUMN `forum_banned_until` DATETIME DEFAULT NULL AFTER `muted_until`;
+
+-- If -1 stored as year 9999 means permanent
+-- NULL means not punished

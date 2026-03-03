@@ -3,7 +3,7 @@ $pageTitle = 'Thread';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
 
 $threadId = (int)($_GET['id'] ?? 0);
 if ($threadId < 1) redirect('/forum/index.php');
@@ -236,8 +236,23 @@ forumCSS();
 <?= pgHtml($page, $totalPages, "/forum/thread.php?id=$threadId") ?>
 
 <!-- Reply Form -->
+<?php
+  $muted = isUserMuted($pdo, $_SESSION['user_id']);
+?>
 <?php if ($thread['is_locked']): ?>
   <div class="alert alert-warn">🔒 This thread is locked.</div>
+<?php elseif ($muted): ?>
+  <div class="alert alert-error">
+    🔇 You are currently muted.
+    <?php if ($muted['expires_at']): ?>
+      Expires: <strong><?= e($muted['expires_at']) ?></strong>
+    <?php else: ?>
+      This mute is <strong>permanent</strong>.
+    <?php endif; ?>
+    <?php if ($muted['reason']): ?>
+      <br>Reason: <?= e($muted['reason']) ?>
+    <?php endif; ?>
+  </div>
 <?php else: ?>
   <div class="card" id="reply">
     <h3>💬 Post a Reply</h3>
@@ -274,5 +289,92 @@ function quotePost(postId, username) {
     }
 }
 </script>
+
+<!-- ===== PUNISHMENT MODAL (shown inline on forum pages) ===== -->
+<?php if (canIssuePunishments()): ?>
+<div class="ss-modal" id="punishModal">
+  <div class="ss-modal-inner" style="max-width:440px;">
+    <h3 id="punishTitle">⚖️ Issue Punishment</h3>
+    <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;">
+      Target: <strong id="punishTarget" style="color:var(--accent-green);"></strong>
+    </p>
+    <form id="punishForm" onsubmit="submitPunishment(event)">
+      <input type="hidden" id="punishUserId" value="">
+
+      <div class="form-group">
+        <label>Type</label>
+        <select id="punishType" required>
+          <option value="warn">⚠️ Warning</option>
+          <option value="mute">🔇 Mute</option>
+          <option value="forum_ban">🚫 Forum Ban</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Duration</label>
+        <select id="punishDuration" required>
+          <option value="1h">1 Hour</option>
+          <option value="6h">6 Hours</option>
+          <option value="12h">12 Hours</option>
+          <option value="1d" selected>1 Day</option>
+          <option value="3d">3 Days</option>
+          <option value="7d">7 Days</option>
+          <option value="14d">14 Days</option>
+          <option value="30d">30 Days</option>
+          <option value="90d">90 Days</option>
+          <option value="permanent">⛔ Permanent</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Reason</label>
+        <textarea id="punishReason" rows="3" placeholder="Reason for this action…" maxlength="500"></textarea>
+      </div>
+
+      <div style="display:flex;gap:.5rem;">
+        <button type="submit" class="btn btn-danger">Issue</button>
+        <button type="button" class="btn btn-secondary" onclick="closePunishModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+var PUNISH_CSRF = '<?= e(generateCSRF()) ?>';
+
+function openPunishModal(userId, username) {
+    document.getElementById('punishUserId').value = userId;
+    document.getElementById('punishTarget').textContent = username;
+    document.getElementById('punishModal').classList.add('is-open');
+}
+function closePunishModal() {
+    document.getElementById('punishModal').classList.remove('is-open');
+}
+
+function submitPunishment(e) {
+    e.preventDefault();
+    var fd = new FormData();
+    fd.append('csrf_token', PUNISH_CSRF);
+    fd.append('action', 'issue_punishment');
+    fd.append('target_user_id', document.getElementById('punishUserId').value);
+    fd.append('type', document.getElementById('punishType').value);
+    fd.append('duration', document.getElementById('punishDuration').value);
+    fd.append('reason', document.getElementById('punishReason').value);
+
+    fetch('/api/forum_admin.php', {method: 'POST', body: fd})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.status === 'success') {
+                closePunishModal();
+                alert(d.message || 'Punishment issued.');
+                location.reload();
+            } else {
+                alert(d.message || 'Error');
+            }
+        })
+        .catch(function(){ alert('Network error'); });
+}
+</script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

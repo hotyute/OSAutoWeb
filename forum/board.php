@@ -3,7 +3,7 @@ $pageTitle = 'Board';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
 
 $boardId = (int)($_GET['id'] ?? 0);
 if ($boardId < 1) redirect('/forum/index.php');

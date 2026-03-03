@@ -3,7 +3,7 @@ $pageTitle = 'Profile';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/forum_helpers.php';
-requireLogin();
+requireForumAccess($pdo);
 
 if (!settingEnabled($pdo, 'forum_user_profiles')) {
     redirect('/forum/index.php');
@@ -162,6 +162,58 @@ forumCSS();
   <?php else: ?>
     <p style="color:var(--text-secondary);">No threads yet.</p>
   <?php endif; ?>
+    <?php if (canIssuePunishments() && $userId != $_SESSION['user_id'] && canModerate($profile['role'])): ?>
+    <div class="mt-1" style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-danger btn-sm"
+              onclick="openPunishModal(<?= $userId ?>, '<?= e(addslashes($profile['username'])) ?>')">
+        ⚖️ Issue Punishment
+      </button>
+
+      <?php
+        $activePunishments = getPunishmentCount($pdo, $userId);
+        $isMuted = isUserMuted($pdo, $userId);
+        $isFBanned = isUserForumBanned($pdo, $userId);
+      ?>
+      <?php if ($isMuted): ?>
+        <span class="badge badge-purple">🔇 Muted</span>
+      <?php endif; ?>
+      <?php if ($isFBanned): ?>
+        <span class="badge badge-red">🚫 Forum Banned</span>
+      <?php endif; ?>
+      <?php if ($activePunishments > 0): ?>
+        <span class="badge badge-amber"><?= $activePunishments ?> active infraction(s)</span>
+      <?php endif; ?>
+    </div>
+
+    <!-- Punishment history on profile -->
+    <?php
+      $pHistory = getPunishmentHistory($pdo, $userId);
+      if ($pHistory):
+    ?>
+      <div class="mt-1">
+        <h3 style="font-size:.9rem;color:var(--accent-red);">⚖️ Infraction History</h3>
+        <div style="max-height:300px;overflow-y:auto;">
+          <?php foreach ($pHistory as $ph): ?>
+            <div style="padding:.4rem 0;border-bottom:1px solid var(--border-color);font-size:.82rem;">
+              <span class="badge <?= $ph['type']==='forum_ban'?'badge-red':($ph['type']==='mute'?'badge-purple':'badge-amber') ?>" style="font-size:.6rem;">
+                <?= e(strtoupper(str_replace('_',' ',$ph['type']))) ?>
+              </span>
+              <?php if (!$ph['is_active']): ?>
+                <span style="color:var(--text-secondary);">(<?= $ph['revoked_by']?'revoked':'expired' ?>)</span>
+              <?php endif; ?>
+              <span style="color:var(--text-secondary);"><?= e($ph['reason'] ?? 'No reason') ?></span>
+              <span style="color:var(--text-secondary);">— <?= timeAgo($ph['created_at']) ?></span>
+              <?php if ($ph['is_active']): ?>
+                <button class="btn btn-sm btn-secondary" style="padding:1px 6px;font-size:.65rem;"
+                        onclick="revokePunishment(<?= $ph['punishment_id'] ?>)">Revoke</button>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
+  <?php endif; ?>
+
 </div>
 
 <!-- Recent Posts -->
