@@ -223,6 +223,13 @@ forumCSS();
                     onclick="return confirm('Delete post?');">🗑️</button>
           </form>
         <?php endif; ?>
+        <?php if (canIssuePunishments() && $p['author_id'] != $_SESSION['user_id'] && canModerate($p['user_role'])): ?>
+          <button type="button" class="btn btn-sm btn-danger"
+                  style="padding:2px 8px;font-size:.7rem;"
+                  onclick="openPunishModal(<?= $p['author_id'] ?>, '<?= e(addslashes($p['username'])) ?>')">
+            ⚖️
+          </button>
+        <?php endif; ?>
       </span>
     </div>
     <div class="post-content"><?= formatPost($p['body']) ?></div>
